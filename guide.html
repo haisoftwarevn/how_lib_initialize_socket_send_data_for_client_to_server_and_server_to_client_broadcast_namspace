@@ -6,12 +6,198 @@
   <li>
     index.js == server side
     <pre>
-        const {Server} = require("socket.io")
-        ....
+        const http = require("http");
+        const express = require("express");
+        const path = require("path");
+        const { Server } = require("socket.io");
+        const { setTimeout } = require("timers/promises");
+        /////
+        const app = express();
+
+        app.get("/", (req, res) => {
+        res.sendFile(path.join(__dirname, "index.html"));
+        });
+
+        ///////////bước setup server side cho socket.io
+        const expressServer = http.createServer(app);
+        const io = new Server(expressServer);
+        ////////////////////////////////////////////////
+
+        ////////// check server side và client side
+        // io.on("connection", (socket) => {
+        //   console.log("New user are in connection");
+
+        //   socket.on("disconnect", () => {
+        //     console.log("User disconnected");
+        //   });
+        // });
+        //////////////////////////////////////////
+
+        ////////////////// pass data to client side
+        // io.on("connection", function (socket) {
+        //   socket.send("me may");
+        // });
+        ////////////////////////////////////////////
+
+        /////////// ví dụ internal send data
+        // io.on("connection", function (socket) {
+        //   setInterval(function () {
+        //     let date = new Date();
+        //     let time = date.getTime();
+        //     socket.send(time.toString());
+        //   }, 2000);
+        // }); /// setimeout không chạy, nhưng setinterval lại chạy, bó tay
+        ///////////////////////////////////////////////
+
+        ////////////////// sử dụng emit để tạo 1 name event : MyEvent
+        // io.on("connection", function (socket) {
+        //   setInterval(function () {
+        //     let date = new Date();
+        //     let time = date.getTime();
+        //     socket.emit("MyEvent", time.toString());
+        //   }, 2000);
+
+        // });
+        ////////////////////////////////////////////////////
+
+        ////////////////// nhận data từ client
+        // io.on("connection", function (socket) {
+        //   socket.on("message", function (msg) {
+        //     console.log("DATA from Client :: ", msg);
+        //   });
+        // });
+        ////////////////////////////////////////////////////
+
+        ////////////////// nhận data từ client với custom event
+        // io.on("connection", function (socket) {
+        //   socket.on("MyClientEvent", function (msg) {
+        //     console.log("DATA from Client :: ", msg);
+        //   });
+        // });
+        ////////////////////////////////////////////////////
+
+        ////////////////// hướng dẫn broadcasting
+        // io.on("connection", function (socket) {
+        //   io.sockets.emit("MyBroadcast", "hello world");
+        // });
+        ////////////////////////////////////////////////////
+
+        ////////////////// hướng dẫn namespace
+
+        let buyNsp = io.of("/buy");
+        buyNsp.on("connection", function (socket) {
+        buyNsp.emit("MyEvent", "Hello Namespace Buy Entry");
+        });
+
+        let sellNsp = io.of("/sell");
+        sellNsp.on("connection", function (socket) {
+        sellNsp.emit("MyEvent", "Hello Namespace Sell Entry");
+        });
+        ////////////////////////////////////////////////////
+
+        expressServer.listen(3000, () => {
+        console.log("the server is running on 3000");
+        });
+
     </pre>
   </li>
   <li>
     index.html == client side
-    <pre></pre>
+    <pre>
+        <h1 id="myTime">Socket Io Project</h1>
+
+        <!-- bước setup client side socket.io -->
+        <!-- <script src="socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+        </script> -->
+        <!--///////////////////////////////////-->
+    
+        <!-- nhận data from client -->
+        <!-- <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+          console.log("aaaaaaaaa", socket);
+          socket.on("message", function (msg) {
+            setTimeout(() => {
+              document.write(msg);
+            }, 4000);
+          });
+        </script> -->
+        <!--//////////////////////////////////////////////-->
+    
+        <!-- <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+    
+          socket.on("message", function (msg) {
+            document.getElementById("myTime").innerHTML = "";
+            document.getElementById("myTime").innerHTML = msg;
+          });
+        </script> // ví dụ internal nhận data -->
+        <!--///////////////////////////////////////////////////-->
+    
+        <!--///////// nhận event tự tạo-->
+        <!-- <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+    
+          // dòng này là lắng nghe
+          socket.on("MyEvent", function (msg) {
+            document.getElementById("myTime").innerHTML = "";
+            document.getElementById("myTime").innerHTML = msg;
+          });
+        </script> -->
+        <!--/////////////////////////////////////////////////////-->
+    
+        <!--///////////////gửi data từ client đến server -->
+        <!-- <input type="text" name="" id="name" />
+        <button type="button" onclick="send()">Send</button>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+          function send() {
+            let name = document.getElementById("name").value;
+            socket.send(name);
+          }
+        </script> -->
+        <!--//////////////////////////////////////////////////-->
+    
+        <!--///////////////gửi data từ client đến server với custom event -->
+        <!-- <input type="text" name="" id="name" />
+        <button type="button" onclick="send()">Send</button>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+          function send() {
+            let name = document.getElementById("name").value;
+            socket.emit("MyClientEvent", name);
+          }
+        </script> -->
+        <!--//////////////////////////////////////////////////-->
+    
+        <!--/////////////// hướng dẫn broadcasting -->
+        <!-- <h1 id="msg">My Title</h1>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io();
+          socket.on("MyBroadcast", function (msg) {
+            document.getElementById("msg").innerHTML = msg;
+          });
+        </script> -->
+        <!--//////////////////////////////////////////////////-->
+    
+        <!--/////////////// hướng dẫn namespace -->
+        <h1 id="msg">My Title</h1>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+          let socket = io("/buy");
+          socket.on("MyEvent", function (msg) {
+            document.getElementById("msg").innerHTML = msg;
+          });
+        </script>
+        <!--//////////////////////////////////////////////////-->
+
+    </pre>
   </li>
 </ul>
